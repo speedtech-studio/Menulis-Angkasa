@@ -136,6 +136,7 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
         <option value="upper">Huruf Besar A–E</option>
         <option value="lower">Huruf Kecil a–e</option>
       </select>
+      <button id="instructionBtn" type="button">🎧 Dengar Arahan</button>
       <button id="soundBtn" type="button">🔊 Dengar Huruf</button>
       <button id="homeBtn" type="button" class="danger">⌂ Pilih Kumpulan</button>
     </div>
@@ -209,17 +210,17 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
 
   const levels = {
     low: {
-      planet:"☁️", title:"Misi Awan • TP1",
+      planet:"☁️", title:"Misi Awan • TP1", audio:"awan",
       prompt:(x)=>`Surih huruf ${x.l} mengikut garisan bertitik. Mulakan pada titik hijau dan ikut arah anak panah.`,
       showLetter:true, guide:"trace"
     },
     mid: {
-      planet:"🌙", title:"Misi Bulan • TP2",
+      planet:"🌙", title:"Misi Bulan • TP2", audio:"bulan",
       prompt:(x)=>`Lihat contoh huruf ${x.l}. Kemudian salin huruf itu pada ruang menulis.`,
       showLetter:true, guide:"lines"
     },
     high: {
-      planet:"⭐", title:"Misi Bintang • TP3",
+      planet:"⭐", title:"Misi Bintang • TP3", audio:"bintang",
       prompt:(x)=>`Apakah huruf awal bagi ${x.word} ${x.emoji}? Tulis huruf awal pada ruang menulis tanpa contoh huruf.`,
       showLetter:false, guide:"lines"
     }
@@ -241,12 +242,78 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
   const clearBtn = document.getElementById("clearBtn");
   const undoBtn = document.getElementById("undoBtn");
   const caseSelect = document.getElementById("caseSelect");
+  const instructionBtn = document.getElementById("instructionBtn");
   const soundBtn = document.getElementById("soundBtn");
   const homeBtn = document.getElementById("homeBtn");
   const restartBtn = document.getElementById("restartBtn");
 
   let level = "low", idx = 0, drawing = false, color="#0f766e";
   let history = [], hasInk = false, last = null;
+  let currentAudio = null;
+  let audioRun = 0;
+  let firstMissionStarted = false;
+
+  const AUDIO_BASE = "audio/";
+  const positiveAudio = ["good", "very-good", "great-job", "excellent", "correct"];
+  const retryAudio = ["try-again", "almost", "dont-give-up"];
+
+  function stopAudio(){
+    audioRun++;
+    if(currentAudio){
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio = null;
+    }
+  }
+
+  function playAudio(name){
+    const run = ++audioRun;
+    if(currentAudio){
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+    return new Promise(resolve => {
+      const audio = new Audio(`${AUDIO_BASE}${name}.mp3`);
+      currentAudio = audio;
+      audio.preload = "auto";
+      audio.addEventListener("ended", () => {
+        if(run === audioRun) currentAudio = null;
+        resolve(true);
+      }, {once:true});
+      audio.addEventListener("error", () => {
+        console.warn(`Audio tidak dijumpai: ${name}.mp3`);
+        if(run === audioRun) currentAudio = null;
+        resolve(false);
+      }, {once:true});
+      audio.play().catch(err => {
+        console.warn("Audio tidak dapat dimainkan:", err);
+        if(run === audioRun) currentAudio = null;
+        resolve(false);
+      });
+    });
+  }
+
+  async function playSequence(names){
+    stopAudio();
+    const sequenceId = audioRun;
+    for(const name of names){
+      if(sequenceId !== audioRun) return;
+      const audio = new Audio(`${AUDIO_BASE}${name}.mp3`);
+      currentAudio = audio;
+      const ok = await new Promise(resolve => {
+        audio.addEventListener("ended", () => resolve(true), {once:true});
+        audio.addEventListener("error", () => resolve(false), {once:true});
+        audio.play().catch(() => resolve(false));
+      });
+      if(sequenceId !== audioRun) return;
+      currentAudio = null;
+      if(!ok) console.warn(`Audio gagal dimainkan: ${name}.mp3`);
+    }
+  }
+
+  function randomFrom(arr){
+    return arr[Math.floor(Math.random()*arr.length)];
+  }
 
   function resizeCanvas(){
     const r = canvasWrap.getBoundingClientRect();
@@ -281,9 +348,6 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
     document.getElementById("progressBar").style.width=`${((idx)/5)*100}%`;
     clearCanvas();
     renderGuide();
-    if("speechSynthesis" in window){
-      speechSynthesis.cancel();
-    }
   }
 
   function renderGuide(){
@@ -291,7 +355,6 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
     g.clearRect(0,0,r.width,r.height);
     g.fillStyle="#fff";
     g.fillRect(0,0,r.width,r.height);
-    // writing lines
     g.strokeStyle="#dbeafe";
     g.lineWidth=2;
     [0.28,0.52,0.76].forEach(y=>{
@@ -332,7 +395,6 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
   }
 
   function saveState(){
-    const r=canvasWrap.getBoundingClientRect();
     if(history.length>15) history.shift();
     history.push(d.getImageData(0,0,draw.width,draw.height));
   }
@@ -369,7 +431,11 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
     b.classList.add("active"); color=b.dataset.color;
   }));
 
-  clearBtn.addEventListener("click",clearCanvas);
+  clearBtn.addEventListener("click",()=>{
+    stopAudio();
+    clearCanvas();
+  });
+
   undoBtn.addEventListener("click",()=>{
     if(!history.length) return;
     const prev=history.pop();
@@ -380,12 +446,14 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
   doneBtn.addEventListener("click",()=>{
     if(!hasInk){
       status.textContent="✏️ Cuba tulis atau surih dahulu sebelum tekan Selesai.";
+      if(level==="low") playAudio(Math.random()>.5 ? "follow-line" : randomFrom(retryAudio));
+      else playAudio(randomFrom(retryAudio));
       return;
     }
     nextBtn.disabled=false;
     status.textContent="🌟 Bagus! Hasil sudah sedia untuk disimpan. Tekan Seterusnya apabila bersedia.";
     burst();
-    speak(current().l);
+    playSequence([randomFrom(positiveAudio), "letter-complete", "instruction-next"]);
   });
 
   function burst(){
@@ -396,33 +464,41 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
   }
 
   nextBtn.addEventListener("click",()=>{
-    if(idx<4){ idx++; renderMission(); }
-    else{
-      game.style.display="none"; finish.style.display="block";
+    if(idx<4){
+      idx++;
+      renderMission();
+      playAudio("next-letter");
+    } else {
+      game.style.display="none";
+      finish.style.display="block";
       document.getElementById("finishText").textContent=`Tahniah! Kamu telah menyiapkan 5 misi ${levels[level].title.replace(" • "," – ")}.`;
+      document.getElementById("progressBar").style.width="100%";
+      playSequence([`${levels[level].audio}-success`, "mission-complete", "final-praise"]);
     }
   });
 
-  caseSelect.addEventListener("change",()=>{ idx=0; renderMission(); });
+  caseSelect.addEventListener("change",()=>{
+    stopAudio();
+    idx=0;
+    renderMission();
+  });
 
-  function speak(text){
-    if(!("speechSynthesis" in window)){
-      status.textContent="Audio sebutan tidak disokong pada pelayar ini.";
-      return;
-    }
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang="ms-MY"; u.rate=.75; u.pitch=1.05;
-    speechSynthesis.speak(u);
-  }
-  soundBtn.addEventListener("click",()=>speak(current().l));
+  soundBtn.addEventListener("click",()=>{
+    playAudio(current().l.toLowerCase());
+  });
+
+  instructionBtn.addEventListener("click",()=>{
+    const cfg = levels[level];
+    if(level==="low") playSequence(["instruction-trace", `${cfg.audio}-instruction`]);
+    else playAudio(`${cfg.audio}-instruction`);
+  });
 
   saveBtn.addEventListener("click",()=>{
     if(!hasInk){
       status.textContent="✏️ Tiada hasil untuk disimpan lagi.";
+      playAudio("try-again");
       return;
     }
-    const r=canvasWrap.getBoundingClientRect();
     const out=document.createElement("canvas");
     out.width=guide.width; out.height=guide.height;
     const o=out.getContext("2d");
@@ -435,17 +511,34 @@ footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
     a.download=`galaksi-${level}-${caseSelect.value}-${x.l}.png`;
     a.click();
     status.textContent="💾 Hasil PNG telah disimpan. Muat naik imej ini ke Canva Whiteboard.";
+    playAudio("very-good");
   });
 
   document.querySelectorAll("[data-level]").forEach(b=>b.addEventListener("click",()=>{
     level=b.dataset.level; idx=0;
     home.style.display="none"; finish.style.display="none"; game.style.display="block";
-    requestAnimationFrame(()=>{resizeCanvas();renderMission();});
+
+    // Mulakan audio terus daripada sentuhan/klik pengguna supaya lebih serasi dengan iPhone/iPad.
+    const cfg = levels[level];
+    const opening = firstMissionStarted
+      ? [`${cfg.audio}-intro`, `${cfg.audio}-instruction`]
+      : ["welcome", "start", `${cfg.audio}-intro`, `${cfg.audio}-instruction`, "instruction-listen"];
+    firstMissionStarted = true;
+    playSequence(opening);
+
+    requestAnimationFrame(()=>{
+      resizeCanvas();
+      renderMission();
+    });
   }));
+
   homeBtn.addEventListener("click",()=>{
+    stopAudio();
     game.style.display="none"; finish.style.display="none"; home.style.display="grid";
   });
+
   restartBtn.addEventListener("click",()=>{
+    stopAudio();
     finish.style.display="none"; home.style.display="grid";
   });
 })();
