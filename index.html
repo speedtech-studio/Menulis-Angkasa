@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Galaksi Tulisan Ajaib</title>
+<style>
+:root{
+  --bg1:#fff7ed; --bg2:#ecfeff; --ink:#123c3a; --muted:#64748b;
+  --pink:#fb7185; --peach:#fdba74; --mint:#99f6e4; --teal:#2dd4bf;
+  --green:#86efac; --yellow:#fde68a; --card:#ffffffee; --line:#d1d5db;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);
+background:
+radial-gradient(circle at 10% 10%,#fecdd3 0 3%,transparent 3.2%),
+radial-gradient(circle at 90% 12%,#a7f3d0 0 4%,transparent 4.2%),
+linear-gradient(135deg,var(--bg1),var(--bg2));
+min-height:100vh}
+button,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:1180px;margin:auto;padding:16px}
+header{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.title h1{margin:0;font-size:clamp(28px,5vw,54px);line-height:.95}
+.title p{margin:.45rem 0 0;color:var(--muted);font-weight:700}
+.badge{background:#0f766e;color:white;border-radius:999px;padding:9px 14px;font-weight:800}
+.card{background:var(--card);border:2px solid #ffffff;border-radius:24px;padding:18px;box-shadow:0 10px 28px #0f172a12}
+#home{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:18px}
+.level{min-height:220px;display:flex;flex-direction:column;justify-content:space-between}
+.level h2{margin:0 0 8px;font-size:25px}
+.level p{margin:0;color:#475569;line-height:1.45}
+.level .tag{display:inline-block;margin-top:10px;border-radius:999px;padding:6px 10px;font-weight:800;background:#f1f5f9}
+.level button,.primary{border:0;border-radius:15px;padding:13px 16px;font-weight:900;color:white;background:#0f766e;min-height:48px}
+.level.low{border-color:#bae6fd}.level.mid{border-color:#fde68a}.level.high{border-color:#fecdd3}
+.level.low button{background:#0891b2}.level.mid button{background:#d97706}.level.high button{background:#e11d48}
+
+#game{display:none;margin-top:16px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.progressWrap{flex:1;min-width:220px}
+.progressText{font-weight:900;margin-bottom:6px}
+.progress{height:14px;border-radius:999px;background:#e2e8f0;overflow:hidden}
+.progress>div{height:100%;background:#14b8a6;width:0;transition:width .3s}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.controls button,.controls select{border:1px solid #cbd5e1;background:white;border-radius:12px;padding:10px 12px;min-height:44px;font-weight:800;color:var(--ink)}
+.controls .danger{background:#fff1f2;color:#be123c}
+.workspace{display:grid;grid-template-columns:310px 1fr;gap:16px;margin-top:14px}
+.mission{display:flex;flex-direction:column;gap:12px}
+.mission .planet{font-size:60px;text-align:center}
+.mission h2{margin:0;font-size:28px}
+.mission .prompt{font-size:18px;line-height:1.45;margin:0;color:#334155}
+.example{border:2px dashed #cbd5e1;border-radius:18px;padding:12px;text-align:center;background:#fff}
+.example .big{font-size:86px;font-weight:900;line-height:1}
+.example .word{font-size:18px;font-weight:900;margin-top:6px}
+.stage{position:relative}
+.canvasWrap{position:relative;width:100%;aspect-ratio:16/10;min-height:360px;border-radius:24px;overflow:hidden;background:white;border:3px solid #cbd5e1;touch-action:none}
+#guide,#draw{position:absolute;inset:0;width:100%;height:100%}
+#guide{pointer-events:none}
+#draw{touch-action:none}
+.tools{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;align-items:center}
+.colorBtn{width:42px;height:42px;border-radius:50%;border:4px solid white;box-shadow:0 0 0 2px #cbd5e1}
+.colorBtn.active{box-shadow:0 0 0 4px #0f766e}
+.toolBtn{border:1px solid #cbd5e1;border-radius:12px;padding:11px 13px;background:white;font-weight:900;min-height:44px}
+.toolBtn.primary{background:#0f766e;color:white;border:0}
+.toolBtn.next{background:#7c3aed;color:white;border:0}
+.toolBtn:disabled{opacity:.45;cursor:not-allowed}
+.hint{font-size:14px;color:#64748b;margin-top:8px}
+.status{min-height:46px;margin-top:10px;padding:11px 13px;border-radius:14px;background:#f8fafc;font-weight:800;display:flex;align-items:center}
+.stars{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.star{position:absolute;font-size:24px;animation:pop .75s ease-out forwards}
+@keyframes pop{0%{transform:scale(.2) translateY(0);opacity:1}100%{transform:scale(1.6) translateY(-45px);opacity:0}}
+.finish{display:none;text-align:center;padding:34px 18px}
+.finish h2{font-size:38px;margin:0 0 10px}
+.finish .trophy{font-size:90px}
+.finish p{font-size:18px;color:#475569}
+footer{text-align:center;color:#64748b;margin-top:16px;font-size:13px}
+@media(max-width:900px){
+  #home{grid-template-columns:1fr}
+  .workspace{grid-template-columns:1fr}
+  .mission{display:grid;grid-template-columns:100px 1fr;align-items:center}
+  .mission .planet{grid-row:1/3}
+  .example{grid-column:1/-1}
+}
+@media(max-width:560px){
+  .app{padding:10px}
+  .canvasWrap{min-height:320px;aspect-ratio:4/5}
+  .mission{display:block}
+  .mission .planet{font-size:48px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <div class="title">
+    <h1>🌌 Galaksi Tulisan Ajaib</h1>
+    <p>Asas 3M – Bahasa Melayu • A–E & a–e</p>
+  </div>
+  <div class="badge">Tahun 1 Pendidikan Khas</div>
+</header>
+
+<section id="home">
+  <article class="card level low">
+    <div>
+      <h2>☁️ Kumpulan Awan</h2>
+      <p><strong>Kefungsian Rendah</strong><br>Menyurih huruf bertitik dengan panduan visual.</p>
+      <span class="tag">TP1 • Menyurih</span>
+    </div>
+    <button data-level="low">Mula Misi Awan</button>
+  </article>
+  <article class="card level mid">
+    <div>
+      <h2>🌙 Kumpulan Bulan</h2>
+      <p><strong>Kefungsian Sederhana</strong><br>Menyalin huruf berdasarkan contoh yang dipaparkan.</p>
+      <span class="tag">TP2 • Menyalin</span>
+    </div>
+    <button data-level="mid">Mula Misi Bulan</button>
+  </article>
+  <article class="card level high">
+    <div>
+      <h2>⭐ Kumpulan Bintang</h2>
+      <p><strong>Kefungsian Tinggi</strong><br>Melihat gambar dan menulis huruf awal tanpa contoh huruf.</p>
+      <span class="tag">TP3 • Menulis</span>
+    </div>
+    <button data-level="high">Mula Misi Bintang</button>
+  </article>
+</section>
+
+<section id="game" class="card">
+  <div class="topbar">
+    <div class="progressWrap">
+      <div class="progressText" id="progressText">Misi 1 daripada 5</div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+    <div class="controls">
+      <select id="caseSelect" aria-label="Pilih huruf besar atau kecil">
+        <option value="upper">Huruf Besar A–E</option>
+        <option value="lower">Huruf Kecil a–e</option>
+      </select>
+      <button id="soundBtn" type="button">🔊 Dengar Huruf</button>
+      <button id="homeBtn" type="button" class="danger">⌂ Pilih Kumpulan</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <aside class="mission">
+      <div class="planet" id="planet">☁️</div>
+      <div>
+        <h2 id="missionTitle">Misi Awan</h2>
+        <p class="prompt" id="prompt"></p>
+      </div>
+      <div class="example" id="exampleBox">
+        <div class="big" id="exampleLetter">A</div>
+        <div class="word" id="exampleWord">A untuk ayam 🐔</div>
+      </div>
+    </aside>
+
+    <div class="stage">
+      <div class="canvasWrap" id="canvasWrap">
+        <canvas id="guide"></canvas>
+        <canvas id="draw"></canvas>
+        <div class="stars" id="stars"></div>
+      </div>
+
+      <div class="tools">
+        <button class="colorBtn active" data-color="#0f766e" style="background:#0f766e" aria-label="Warna hijau gelap"></button>
+        <button class="colorBtn" data-color="#e11d48" style="background:#e11d48" aria-label="Warna merah jambu"></button>
+        <button class="colorBtn" data-color="#2563eb" style="background:#2563eb" aria-label="Warna biru"></button>
+        <button class="colorBtn" data-color="#7c3aed" style="background:#7c3aed" aria-label="Warna ungu"></button>
+        <button class="toolBtn" id="undoBtn" type="button">↶ Undur</button>
+        <button class="toolBtn" id="clearBtn" type="button">🧹 Padam</button>
+        <button class="toolBtn primary" id="doneBtn" type="button">✓ Selesai</button>
+        <button class="toolBtn" id="saveBtn" type="button">💾 Simpan PNG</button>
+        <button class="toolBtn next" id="nextBtn" type="button" disabled>Seterusnya ➜</button>
+      </div>
+      <div class="status" id="status" aria-live="polite">Ikut arahan misi dan mula menulis pada ruang putih.</div>
+      <div class="hint">Tip: gunakan stylus atau jari. Tekan “Selesai” apabila tulisan siap. Hasil boleh disimpan sebagai PNG untuk dimuat naik ke Canva Whiteboard.</div>
+    </div>
+  </div>
+</section>
+
+<section id="finish" class="card finish">
+  <div class="trophy">🏆</div>
+  <h2>Misi Galaksi Selesai!</h2>
+  <p id="finishText">Tahniah! Kamu telah menyiapkan 5 misi.</p>
+  <button id="restartBtn" class="primary" type="button">Main Lagi</button>
+</section>
+
+<footer>Galaksi Tulisan Ajaib • GitHub Pages • Pembelajaran kendiri mengikut tahap kefungsian</footer>
+</main>
+
+<script>
+(() => {
+  const letters = {
+    upper: [
+      {l:"A", word:"ayam", emoji:"🐔"},
+      {l:"B", word:"buku", emoji:"📘"},
+      {l:"C", word:"cawan", emoji:"🥤"},
+      {l:"D", word:"dadu", emoji:"🎲"},
+      {l:"E", word:"emak", emoji:"👩"}
+    ],
+    lower: [
+      {l:"a", word:"ayam", emoji:"🐔"},
+      {l:"b", word:"buku", emoji:"📘"},
+      {l:"c", word:"cawan", emoji:"🥤"},
+      {l:"d", word:"dadu", emoji:"🎲"},
+      {l:"e", word:"emak", emoji:"👩"}
+    ]
+  };
+
+  const levels = {
+    low: {
+      planet:"☁️", title:"Misi Awan • TP1",
+      prompt:(x)=>`Surih huruf ${x.l} mengikut garisan bertitik. Mulakan pada titik hijau dan ikut arah anak panah.`,
+      showLetter:true, guide:"trace"
+    },
+    mid: {
+      planet:"🌙", title:"Misi Bulan • TP2",
+      prompt:(x)=>`Lihat contoh huruf ${x.l}. Kemudian salin huruf itu pada ruang menulis.`,
+      showLetter:true, guide:"lines"
+    },
+    high: {
+      planet:"⭐", title:"Misi Bintang • TP3",
+      prompt:(x)=>`Apakah huruf awal bagi ${x.word} ${x.emoji}? Tulis huruf awal pada ruang menulis tanpa contoh huruf.`,
+      showLetter:false, guide:"lines"
+    }
+  };
+
+  const home = document.getElementById("home");
+  const game = document.getElementById("game");
+  const finish = document.getElementById("finish");
+  const guide = document.getElementById("guide");
+  const draw = document.getElementById("draw");
+  const g = guide.getContext("2d");
+  const d = draw.getContext("2d");
+  const canvasWrap = document.getElementById("canvasWrap");
+  const stars = document.getElementById("stars");
+  const status = document.getElementById("status");
+  const nextBtn = document.getElementById("nextBtn");
+  const doneBtn = document.getElementById("doneBtn");
+  const saveBtn = document.getElementById("saveBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const undoBtn = document.getElementById("undoBtn");
+  const caseSelect = document.getElementById("caseSelect");
+  const soundBtn = document.getElementById("soundBtn");
+  const homeBtn = document.getElementById("homeBtn");
+  const restartBtn = document.getElementById("restartBtn");
+
+  let level = "low", idx = 0, drawing = false, color="#0f766e";
+  let history = [], hasInk = false, last = null;
+
+  function resizeCanvas(){
+    const r = canvasWrap.getBoundingClientRect();
+    const ratio = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    [guide,draw].forEach(c=>{
+      const old = document.createElement("canvas");
+      old.width=c.width; old.height=c.height;
+      if(c.width && c.height) old.getContext("2d").drawImage(c,0,0);
+      c.width=Math.round(r.width*ratio);
+      c.height=Math.round(r.height*ratio);
+      c.style.width=r.width+"px"; c.style.height=r.height+"px";
+      const ctx=c.getContext("2d");
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+      if(c===draw && old.width) ctx.drawImage(old,0,0,old.width,old.height,0,0,r.width,r.height);
+    });
+    renderGuide();
+  }
+  window.addEventListener("resize", ()=>{ clearTimeout(window._rt); window._rt=setTimeout(resizeCanvas,120); });
+
+  function current(){ return letters[caseSelect.value][idx]; }
+
+  function renderMission(){
+    const x=current(), cfg=levels[level];
+    document.getElementById("planet").textContent=cfg.planet;
+    document.getElementById("missionTitle").textContent=cfg.title;
+    document.getElementById("prompt").textContent=cfg.prompt(x);
+    const ex=document.getElementById("exampleLetter");
+    ex.textContent=cfg.showLetter ? x.l : x.emoji;
+    ex.style.fontSize=cfg.showLetter ? "86px" : "74px";
+    document.getElementById("exampleWord").textContent = cfg.showLetter ? `${x.l} untuk ${x.word} ${x.emoji}` : `${x.word} ${x.emoji}`;
+    document.getElementById("progressText").textContent=`Misi ${idx+1} daripada 5`;
+    document.getElementById("progressBar").style.width=`${((idx)/5)*100}%`;
+    clearCanvas();
+    renderGuide();
+    if("speechSynthesis" in window){
+      speechSynthesis.cancel();
+    }
+  }
+
+  function renderGuide(){
+    const r=canvasWrap.getBoundingClientRect();
+    g.clearRect(0,0,r.width,r.height);
+    g.fillStyle="#fff";
+    g.fillRect(0,0,r.width,r.height);
+    // writing lines
+    g.strokeStyle="#dbeafe";
+    g.lineWidth=2;
+    [0.28,0.52,0.76].forEach(y=>{
+      g.beginPath(); g.moveTo(24,r.height*y); g.lineTo(r.width-24,r.height*y); g.stroke();
+    });
+    g.setLineDash([7,8]);
+    g.strokeStyle="#cbd5e1";
+    g.lineWidth=2;
+    g.beginPath(); g.moveTo(24,r.height*.64); g.lineTo(r.width-24,r.height*.64); g.stroke();
+    g.setLineDash([]);
+
+    if(level==="low"){
+      const x=current();
+      const size=Math.min(r.width*.52,r.height*.68);
+      g.save();
+      g.font=`900 ${size}px Arial, Helvetica, sans-serif`;
+      g.textAlign="center"; g.textBaseline="middle";
+      g.strokeStyle="#94a3b8";
+      g.lineWidth=Math.max(4,size*.035);
+      g.setLineDash([8,10]);
+      g.strokeText(x.l,r.width/2,r.height/2+4);
+      g.setLineDash([]);
+      g.fillStyle="#22c55e";
+      g.beginPath(); g.arc(r.width*.35,r.height*.23,8,0,Math.PI*2); g.fill();
+      g.fillStyle="#0f766e";
+      g.font="700 16px Arial";
+      g.textAlign="left"; g.textBaseline="middle";
+      g.fillText("MULA",r.width*.35+13,r.height*.23);
+      g.restore();
+    }
+  }
+
+  function clearCanvas(){
+    const r=canvasWrap.getBoundingClientRect();
+    d.clearRect(0,0,r.width,r.height);
+    history=[]; hasInk=false; nextBtn.disabled=true;
+    status.textContent="Ikut arahan misi dan mula menulis pada ruang putih.";
+  }
+
+  function saveState(){
+    const r=canvasWrap.getBoundingClientRect();
+    if(history.length>15) history.shift();
+    history.push(d.getImageData(0,0,draw.width,draw.height));
+  }
+
+  function pt(e){
+    const r=draw.getBoundingClientRect();
+    return {x:e.clientX-r.left,y:e.clientY-r.top};
+  }
+
+  draw.addEventListener("pointerdown",e=>{
+    drawing=true; draw.setPointerCapture(e.pointerId);
+    saveState(); last=pt(e); hasInk=true;
+  });
+  draw.addEventListener("pointermove",e=>{
+    if(!drawing) return;
+    const p=pt(e);
+    d.strokeStyle=color; d.lineWidth=12; d.lineCap="round"; d.lineJoin="round";
+    d.beginPath(); d.moveTo(last.x,last.y); d.lineTo(p.x,p.y); d.stroke();
+    spawnStar(p.x,p.y);
+    last=p;
+  });
+  ["pointerup","pointercancel","pointerleave"].forEach(ev=>draw.addEventListener(ev,()=>{drawing=false;}));
+
+  function spawnStar(x,y){
+    if(Math.random()>.35) return;
+    const s=document.createElement("span");
+    s.className="star"; s.textContent="⭐";
+    s.style.left=(x-10)+"px"; s.style.top=(y-10)+"px";
+    stars.appendChild(s); setTimeout(()=>s.remove(),800);
+  }
+
+  document.querySelectorAll(".colorBtn").forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll(".colorBtn").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active"); color=b.dataset.color;
+  }));
+
+  clearBtn.addEventListener("click",clearCanvas);
+  undoBtn.addEventListener("click",()=>{
+    if(!history.length) return;
+    const prev=history.pop();
+    d.putImageData(prev,0,0);
+    hasInk=true;
+  });
+
+  doneBtn.addEventListener("click",()=>{
+    if(!hasInk){
+      status.textContent="✏️ Cuba tulis atau surih dahulu sebelum tekan Selesai.";
+      return;
+    }
+    nextBtn.disabled=false;
+    status.textContent="🌟 Bagus! Hasil sudah sedia untuk disimpan. Tekan Seterusnya apabila bersedia.";
+    burst();
+    speak(current().l);
+  });
+
+  function burst(){
+    const r=canvasWrap.getBoundingClientRect();
+    for(let i=0;i<18;i++){
+      setTimeout(()=>spawnStar(r.width*(.2+Math.random()*.6),r.height*(.2+Math.random()*.6)),i*35);
+    }
+  }
+
+  nextBtn.addEventListener("click",()=>{
+    if(idx<4){ idx++; renderMission(); }
+    else{
+      game.style.display="none"; finish.style.display="block";
+      document.getElementById("finishText").textContent=`Tahniah! Kamu telah menyiapkan 5 misi ${levels[level].title.replace(" • "," – ")}.`;
+    }
+  });
+
+  caseSelect.addEventListener("change",()=>{ idx=0; renderMission(); });
+
+  function speak(text){
+    if(!("speechSynthesis" in window)){
+      status.textContent="Audio sebutan tidak disokong pada pelayar ini.";
+      return;
+    }
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="ms-MY"; u.rate=.75; u.pitch=1.05;
+    speechSynthesis.speak(u);
+  }
+  soundBtn.addEventListener("click",()=>speak(current().l));
+
+  saveBtn.addEventListener("click",()=>{
+    if(!hasInk){
+      status.textContent="✏️ Tiada hasil untuk disimpan lagi.";
+      return;
+    }
+    const r=canvasWrap.getBoundingClientRect();
+    const out=document.createElement("canvas");
+    out.width=guide.width; out.height=guide.height;
+    const o=out.getContext("2d");
+    o.fillStyle="#fff"; o.fillRect(0,0,out.width,out.height);
+    o.drawImage(guide,0,0);
+    o.drawImage(draw,0,0);
+    const a=document.createElement("a");
+    a.href=out.toDataURL("image/png");
+    const x=current();
+    a.download=`galaksi-${level}-${caseSelect.value}-${x.l}.png`;
+    a.click();
+    status.textContent="💾 Hasil PNG telah disimpan. Muat naik imej ini ke Canva Whiteboard.";
+  });
+
+  document.querySelectorAll("[data-level]").forEach(b=>b.addEventListener("click",()=>{
+    level=b.dataset.level; idx=0;
+    home.style.display="none"; finish.style.display="none"; game.style.display="block";
+    requestAnimationFrame(()=>{resizeCanvas();renderMission();});
+  }));
+  homeBtn.addEventListener("click",()=>{
+    game.style.display="none"; finish.style.display="none"; home.style.display="grid";
+  });
+  restartBtn.addEventListener("click",()=>{
+    finish.style.display="none"; home.style.display="grid";
+  });
+})();
+</script>
+</body>
+</html>
