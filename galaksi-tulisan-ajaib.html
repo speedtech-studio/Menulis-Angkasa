@@ -1,7 +1,7 @@
 <!doctype html><html lang="ms"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Galaksi Tulisan Ajaib</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100dvh;font:600 17px system-ui;color:#f8f6ff;background:radial-gradient(ellipse at 10% 10%,#452278,transparent 52%),radial-gradient(ellipse at 97% 100%,#12515f,transparent 55%),#141129}main{max-width:940px;margin:auto;padding:32px 18px;text-align:center}h1{font-size:clamp(2.2rem,7vw,4.4rem);line-height:1;margin:12px 0;color:#fff}h2{margin:8px 0}p{line-height:1.5}.badge{color:#e0cafa}.rocket{font-size:76px}.panel{margin-top:24px;border:1px solid #a696cb77;background:#211939e8;border-radius:30px;padding:clamp(12px,4vw,30px);box-shadow:0 20px 60px #09051c80}.row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.boards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:570px;margin:12px auto}.board{background:#f7f2ff;border-radius:18px;color:#231945;padding:9px}canvas{width:100%;max-width:225px;display:block;margin:6px auto;touch-action:none;background:white;border-radius:12px;border:2px solid #cfc2e9;cursor:crosshair}button,a.action{font:inherit;border:0;border-radius:14px;padding:12px 18px;color:#23163d;background:#ddc8ff;cursor:pointer;min-height:46px;text-decoration:none}button:focus-visible,a:focus-visible{outline:3px solid #ffa75c;outline-offset:3px}button:disabled{opacity:.48;cursor:default}.cards button{padding:16px 8px}.cards span{display:block;font-size:32px}.primary{background:#ffe18f!important}.sub{font-size:14px}.example{font-size:36px;line-height:1.1}.stars{letter-spacing:.4em;color:#ffe18f}.fly{animation:fly 1.5s ease-out both}@keyframes fly{0%{transform:translateY(50px)}60%{transform:translateY(-70px)}100%{transform:translateY(0)}}@media(max-width:520px){.cards{grid-template-columns:1fr}.cards span{display:inline}.boards{gap:6px}.board button{padding:6px 10px}main{padding-top:16px}}@media(prefers-reduced-motion:reduce){.fly{animation:none}}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;font:600 17px system-ui;color:#f8f6ff;background:radial-gradient(ellipse at 10% 10%,#452278,transparent 52%),radial-gradient(ellipse at 97% 100%,#12515f,transparent 55%),#141129}main{max-width:940px;margin:auto;padding:32px 18px;text-align:center}h1{font-size:clamp(2.2rem,7vw,4.4rem);line-height:1;margin:12px 0;color:#fff}h2{margin:8px 0}p{line-height:1.5}.badge{color:#e0cafa}.rocket{font-size:76px}.panel{margin-top:24px;border:1px solid #a696cb77;background:#211939e8;border-radius:30px;padding:clamp(12px,4vw,30px);box-shadow:0 20px 60px #09051c80}.row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.boards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:570px;margin:12px auto}.board{background:#f7f2ff;border-radius:18px;color:#231945;padding:9px}canvas{width:100%;max-width:225px;display:block;margin:6px auto;touch-action:none;background:#f2d8ab;border-radius:12px;border:2px solid #cfc2e9;cursor:crosshair}button,a.action{font:inherit;border:0;border-radius:14px;padding:12px 18px;color:#23163d;background:#ddc8ff;cursor:pointer;min-height:46px;text-decoration:none}button:focus-visible,a:focus-visible{outline:3px solid #ffa75c;outline-offset:3px}button:disabled{opacity:.48;cursor:default}.cards button{padding:16px 8px}.cards span{display:block;font-size:32px}.primary{background:#ffe18f!important}.sub{font-size:14px}.example{font-size:36px;line-height:1.1}.stars{letter-spacing:.4em;color:#ffe18f}.fly{animation:fly 3s ease-out both}@keyframes fly{0%{transform:translateY(50px)}60%{transform:translateY(-70px)}100%{transform:translateY(0)}}@media(max-width:520px){.cards{grid-template-columns:1fr}.cards span{display:inline}.boards{gap:6px}.board button{padding:6px 10px}main{padding-top:16px}}@media(prefers-reduced-motion:reduce){.fly{animation:none}}
 </style>
 <main id="app"></main>
 <script>
@@ -21,6 +21,27 @@ const guides={
  d:'M84 60 C61 36 35 54 35 77 C35 102 61 112 84 91 M84 22 V103',
  e:'M36 77 H85 C85 38 36 39 36 77 C36 104 64 114 87 94'
 };
+const sand=document.createElement('canvas');
+sand.width=sand.height=240;
+const texture=sand.getContext('2d');
+const tint=texture.createLinearGradient(0,0,240,240);
+tint.addColorStop(0,'#fae6c4');tint.addColorStop(1,'#ebc891');
+texture.fillStyle=tint;texture.fillRect(0,0,240,240);
+let grain=31;
+function grainPosition(){
+ grain=(Math.imul(grain,1664525)+1013904223)>>>0;
+ return grain/4294967296*240;
+}
+for(let dot=0;dot<2700;dot++){
+ texture.fillStyle=dot%2?'#7d471320':'#ffffff60';
+ texture.fillRect(grainPosition(),grainPosition(),dot%3===0?2:1,1);
+}
+[44,128,208].forEach((y,i)=>{
+ texture.strokeStyle='#936b46';
+ texture.lineWidth=i===1?1.4:2;
+ texture.setLineDash(i===1?[6,6]:[]);
+ texture.beginPath();texture.moveTo(24,y);texture.lineTo(216,y);texture.stroke();
+});
 const app=document.getElementById('app');
 let mode,index,repair,records,pads;
 function home(){
@@ -32,7 +53,7 @@ function mission(){
  const heading=repair?'Sambung palang huruf A':modes[mode][1];
  const clue=mode==='Bintang'?'<div class="rocket" aria-hidden="true">'+icon+'</div><p><strong>'+word+'</strong> <button id="hear">🔊 Dengar</button></p>':'';
  // Keep the spelling hidden when recalling the initial letter.
- app.innerHTML='<p class="badge">'+modes[mode][0]+' Kumpulan '+mode+'</p><h1 style="font-size:clamp(1.7rem,6vw,3.2rem)">'+heading+'</h1><section class="panel"><p class="stars" aria-label="'+index+' kod disiapkan">'+ '★'.repeat(index)+'☆'.repeat(total-index)+'</p>'+ (repair?'<p>Surih garisan bertitik untuk baiki huruf.</p>':mode==='Bintang'?clue.replace('<strong>'+word+'</strong> ','')+'<p>Tulis huruf pertama dalam dua kotak.</p>':'<p>Kod '+(index+1)+' daripada '+total+'</p>')+'<div class="boards"'+(repair?' style="grid-template-columns:minmax(0,260px)"':'')+'></div><div class="row"><button id="next" class="primary" disabled>'+(repair?'Mula kod roket':index===total-1?'Lancarkan roket':'Seterusnya')+'</button></div><p id="audio-status" class="sub" role="status"></p></section>';
+ app.innerHTML='<p class="badge">'+modes[mode][0]+' Kumpulan '+mode+'</p><h1 style="font-size:clamp(1.7rem,6vw,3.2rem)">'+heading+'</h1><section class="panel"><p class="stars" aria-label="'+index+' kod disiapkan">'+ '★'.repeat(index)+'☆'.repeat(total-index)+'</p>'+ (repair?'<p>Surih garisan bertitik untuk baiki huruf.</p>':mode==='Bintang'?clue.replace('<strong>'+word+'</strong> ','')+'<p>Tulis huruf pertama dalam dua kotak.</p>':'<p>Kod '+(index+1)+' daripada '+total+'</p>')+'<p class="sub">Tulis perlahan-lahan. Ambil masa kamu.</p><div class="boards"'+(repair?' style="grid-template-columns:minmax(0,260px)"':'')+'></div><div class="row"><button id="next" class="primary" disabled>'+(repair?'Mula kod roket':index===total-1?'Lancarkan roket':'Seterusnya')+'</button></div><p id="audio-status" class="sub" role="status"></p></section>';
  const hear=document.getElementById('hear');
  if(hear)hear.onclick=()=>{
   const status=document.getElementById('audio-status');
@@ -63,15 +84,13 @@ function board(character,position){
  const ink=document.createElement('canvas');
  ink.width=240;ink.height=240;
  const pen=ink.getContext('2d');
- pen.strokeStyle='#442291';pen.lineWidth=8;pen.lineCap='round';pen.lineJoin='round';
+ pen.lineWidth=10;pen.lineCap='round';pen.lineJoin='round';
  let active=null,previous,marked=false;
  function paint(){
-  context.clearRect(0,0,240,240);
+  context.drawImage(sand,0,0);
   context.save();context.scale(2,2);
-  context.lineWidth=2;context.strokeStyle='#ded4f2';
-  context.beginPath();context.moveTo(12,104);context.lineTo(108,104);context.stroke();
   if(mode==='Awan'){
-   context.lineWidth=2.8;context.strokeStyle='#816da4';context.lineCap='round';
+   context.lineWidth=2.8;context.strokeStyle='#695076';context.lineCap='round';
    if(repair)context.stroke(new Path2D('M32 103 L60 22 L88 103'));
    context.setLineDash([.5,5.5]);
    context.stroke(new Path2D(repair?'M43 74 H77':guides[character]));
@@ -93,7 +112,10 @@ function board(character,position){
  canvas.onpointermove=event=>{
   if(active!==event.pointerId)return;
   const current=point(event);
-  pen.beginPath();pen.moveTo(...previous);pen.lineTo(...current);pen.stroke();
+  pen.beginPath();pen.moveTo(previous[0],previous[1]+2);pen.lineTo(current[0],current[1]+2);
+  pen.strokeStyle='#fff0d5';pen.stroke();
+  pen.beginPath();pen.moveTo(...previous);pen.lineTo(...current);
+  pen.strokeStyle='#754527';pen.stroke();
   previous=current;marked=true;paint();refresh();
  };
  canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=event=>{if(active===event.pointerId)active=null};
@@ -112,8 +134,7 @@ function finish(){
   context.fillStyle='#231945';context.fillText('Kod '+(row+1),32,y+32);
   pair.forEach((ink,column)=>{
    const x=150+column*235;
-   context.fillStyle='#fff';context.fillRect(x,y,200,200);
-   context.fillStyle='#ded4f2';context.fillRect(x+12,y+173,176,2);
+   context.drawImage(sand,x,y,200,200);
    context.drawImage(ink,x,y,200,200);
   });
  });
