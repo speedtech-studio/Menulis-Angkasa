@@ -1,0 +1,125 @@
+<!doctype html><html lang="ms"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Galaksi Tulisan Ajaib</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;font:600 17px system-ui;color:#f8f6ff;background:radial-gradient(ellipse at 10% 10%,#452278,transparent 52%),radial-gradient(ellipse at 97% 100%,#12515f,transparent 55%),#141129}main{max-width:940px;margin:auto;padding:32px 18px;text-align:center}h1{font-size:clamp(2.2rem,7vw,4.4rem);line-height:1;margin:12px 0;color:#fff}h2{margin:8px 0}p{line-height:1.5}.badge{color:#e0cafa}.rocket{font-size:76px}.panel{margin-top:24px;border:1px solid #a696cb77;background:#211939e8;border-radius:30px;padding:clamp(12px,4vw,30px);box-shadow:0 20px 60px #09051c80}.row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.boards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:570px;margin:12px auto}.board{background:#f7f2ff;border-radius:18px;color:#231945;padding:9px}canvas{width:100%;max-width:225px;display:block;margin:6px auto;touch-action:none;background:white;border-radius:12px;border:2px solid #cfc2e9;cursor:crosshair}button,a.action{font:inherit;border:0;border-radius:14px;padding:12px 18px;color:#23163d;background:#ddc8ff;cursor:pointer;min-height:46px;text-decoration:none}button:focus-visible,a:focus-visible{outline:3px solid #ffa75c;outline-offset:3px}button:disabled{opacity:.48;cursor:default}.cards button{padding:16px 8px}.cards span{display:block;font-size:32px}.primary{background:#ffe18f!important}.sub{font-size:14px}.example{font-size:36px;line-height:1.1}.stars{letter-spacing:.4em;color:#ffe18f}.fly{animation:fly 1.5s ease-out both}@keyframes fly{0%{transform:translateY(50px)}60%{transform:translateY(-70px)}100%{transform:translateY(0)}}@media(max-width:520px){.cards{grid-template-columns:1fr}.cards span{display:inline}.boards{gap:6px}.board button{padding:6px 10px}main{padding-top:16px}}@media(prefers-reduced-motion:reduce){.fly{animation:none}}
+</style>
+<main id="app"></main>
+<script>
+'use strict';
+const letters=['A','B','C','D','E'];
+const clues=[['🐔','ayam'],['⚽','bola'],['☕','cawan'],['🎲','dadu'],['🍎','epal']];
+const modes={Awan:['☁️','Surih dengan bimbingan',2],Bulan:['🌙','Salin ikut contoh',3],Bintang:['⭐','Tulis huruf awal',5]};
+const guides={
+ A:'M32 103 L60 22 L88 103 M43 74 H77',
+ B:'M35 103 V22 H61 C94 22 94 60 61 60 H35 M61 60 C98 60 99 103 61 103 H35',
+ C:'M87 35 C52 0 22 37 29 76 C34 105 64 116 88 91',
+ D:'M34 103 V22 H53 C103 22 103 103 53 103 Z',
+ E:'M88 22 H35 V103 H88 M35 62 H77',
+ a:'M83 57 C58 36 36 54 36 77 C36 102 60 112 83 92 M83 49 V103',
+ b:'M37 103 V22 M37 61 C57 36 86 51 86 76 C86 103 58 113 37 92',
+ c:'M85 57 C64 36 35 53 35 77 C35 101 63 113 86 93',
+ d:'M84 60 C61 36 35 54 35 77 C35 102 61 112 84 91 M84 22 V103',
+ e:'M36 77 H85 C85 38 36 39 36 77 C36 104 64 114 87 94'
+};
+const app=document.getElementById('app');
+let mode,index,repair,records,pads;
+function home(){
+ app.innerHTML='<div class="rocket" aria-hidden="true">🚀</div><h1>Galaksi Tulisan Ajaib</h1><p class="badge">Misi Baiki Kod Roket</p><section class="panel"><h2>Pilih kumpulan kamu</h2><p>Kod roket belum lengkap. Jom baiki huruf supaya roket boleh berlepas!</p><div class="cards">'+Object.entries(modes).map(([name,[icon,task]])=>'<button data-mode="'+name+'"><span>'+icon+'</span>'+name+'<br><small>'+task+'</small></button>').join('')+'</div></section>';
+ app.querySelectorAll('[data-mode]').forEach(button=>button.onclick=()=>{mode=button.dataset.mode;index=0;records=[];repair=mode==='Awan';mission()});
+}
+function mission(){
+ const letter=letters[index],little=letter.toLowerCase(),[icon,word]=clues[index],total=modes[mode][2];
+ const heading=repair?'Sambung palang huruf A':modes[mode][1];
+ const clue=mode==='Bintang'?'<div class="rocket" aria-hidden="true">'+icon+'</div><p><strong>'+word+'</strong> <button id="hear">🔊 Dengar</button></p>':'';
+ // Keep the spelling hidden when recalling the initial letter.
+ app.innerHTML='<p class="badge">'+modes[mode][0]+' Kumpulan '+mode+'</p><h1 style="font-size:clamp(1.7rem,6vw,3.2rem)">'+heading+'</h1><section class="panel"><p class="stars" aria-label="'+index+' kod disiapkan">'+ '★'.repeat(index)+'☆'.repeat(total-index)+'</p>'+ (repair?'<p>Surih garisan bertitik untuk baiki huruf.</p>':mode==='Bintang'?clue.replace('<strong>'+word+'</strong> ','')+'<p>Tulis huruf pertama dalam dua kotak.</p>':'<p>Kod '+(index+1)+' daripada '+total+'</p>')+'<div class="boards"'+(repair?' style="grid-template-columns:minmax(0,260px)"':'')+'></div><div class="row"><button id="next" class="primary" disabled>'+(repair?'Mula kod roket':index===total-1?'Lancarkan roket':'Seterusnya')+'</button></div><p id="audio-status" class="sub" role="status"></p></section>';
+ const hear=document.getElementById('hear');
+ if(hear)hear.onclick=()=>{
+  const status=document.getElementById('audio-status');
+  if(!('speechSynthesis' in window)){status.textContent='Audio tidak tersedia pada peranti ini.';return}
+  const speech=new SpeechSynthesisUtterance(word);
+  speech.lang='ms-MY';speech.rate=.82;
+  const voice=speechSynthesis.getVoices().find(item=>item.lang.toLowerCase().startsWith('ms'));
+  if(voice) speech.voice=voice;
+  speech.onerror=()=>{status.textContent='Audio tidak tersedia pada peranti ini.'};
+  speechSynthesis.cancel();speechSynthesis.speak(speech);
+ };
+ pads=(repair?['A']:[letter,little]).map((character,position)=>board(character,position));
+ document.getElementById('next').onclick=()=>{
+  if(repair){repair=false;mission();return}
+  records.push(pads.map(pad=>pad.ink));
+  index++;
+  if(index===total)finish();else mission();
+ };
+}
+function board(character,position){
+ const wrapper=document.createElement('div');
+ wrapper.className='board';
+ const label=repair?'Palang huruf':position===0?'Huruf besar':'Huruf kecil';
+ wrapper.innerHTML='<strong>'+label+'</strong>'+(mode==='Bulan'?'<div class="example">'+character+'</div>':'')+'<canvas width="240" height="240" aria-label="Ruang tulisan '+label.toLowerCase()+'"></canvas><button class="sub">Padam</button>';
+ app.querySelector('.boards').append(wrapper);
+ const canvas=wrapper.querySelector('canvas');
+ const context=canvas.getContext('2d');
+ const ink=document.createElement('canvas');
+ ink.width=240;ink.height=240;
+ const pen=ink.getContext('2d');
+ pen.strokeStyle='#442291';pen.lineWidth=8;pen.lineCap='round';pen.lineJoin='round';
+ let active=null,previous,marked=false;
+ function paint(){
+  context.clearRect(0,0,240,240);
+  context.save();context.scale(2,2);
+  context.lineWidth=2;context.strokeStyle='#ded4f2';
+  context.beginPath();context.moveTo(12,104);context.lineTo(108,104);context.stroke();
+  if(mode==='Awan'){
+   context.lineWidth=2.8;context.strokeStyle='#816da4';context.lineCap='round';
+   if(repair)context.stroke(new Path2D('M32 103 L60 22 L88 103'));
+   context.setLineDash([.5,5.5]);
+   context.stroke(new Path2D(repair?'M43 74 H77':guides[character]));
+   const start=repair?[43,74]:guides[character].slice(1).split(' ').slice(0,2).map(Number);
+   context.fillStyle='#2d8066';context.beginPath();context.arc(...start,2.5,0,Math.PI*2);context.fill();
+  }
+  context.restore();context.drawImage(ink,0,0);
+ }
+ function point(event){
+  const rect=canvas.getBoundingClientRect();
+  return [(event.clientX-rect.left)*240/rect.width,(event.clientY-rect.top)*240/rect.height];
+ }
+ const pad={ink,get marked(){return marked}};
+ const refresh=()=>document.getElementById('next').disabled=!pads.every(item=>item.marked);
+ canvas.onpointerdown=event=>{
+  if(active!==null||event.button!==0)return;
+  active=event.pointerId;previous=point(event);canvas.setPointerCapture(active);
+ };
+ canvas.onpointermove=event=>{
+  if(active!==event.pointerId)return;
+  const current=point(event);
+  pen.beginPath();pen.moveTo(...previous);pen.lineTo(...current);pen.stroke();
+  previous=current;marked=true;paint();refresh();
+ };
+ canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=event=>{if(active===event.pointerId)active=null};
+ wrapper.querySelector('button').onclick=()=>{pen.clearRect(0,0,240,240);marked=false;paint();refresh()};
+ paint();return pad;
+}
+function finish(){
+ const result=document.createElement('canvas');
+ result.width=700;result.height=130+records.length*220;
+ const context=result.getContext('2d');
+ context.fillStyle='#f4eeff';context.fillRect(0,0,result.width,result.height);
+ context.fillStyle='#231945';context.font='bold 29px sans-serif';context.fillText('Galaksi Tulisan Ajaib',32,50);
+ context.font='20px sans-serif';context.fillText('Kumpulan '+mode+' • Huruf besar dan huruf kecil',32,83);
+ records.forEach((pair,row)=>{
+  const y=110+row*220;
+  context.fillStyle='#231945';context.fillText('Kod '+(row+1),32,y+32);
+  pair.forEach((ink,column)=>{
+   const x=150+column*235;
+   context.fillStyle='#fff';context.fillRect(x,y,200,200);
+   context.fillStyle='#ded4f2';context.fillRect(x+12,y+173,176,2);
+   context.drawImage(ink,x,y,200,200);
+  });
+ });
+ app.innerHTML='<div class="rocket fly" aria-hidden="true">🚀</div><h1>Roket Berlepas!</h1><section class="panel"><h2>Tahniah, Kumpulan '+mode+'!</h2><p>Simpan hasil tulisan kamu.</p><div class="row"><a id="save" class="action primary" download="Hasil-Tulisan-'+mode+'.png">Simpan imej</a><button id="home">Main semula</button></div></section>';
+ document.getElementById('save').href=result.toDataURL('image/png');
+ document.getElementById('home').onclick=home;
+}
+home();
+</script></html>
