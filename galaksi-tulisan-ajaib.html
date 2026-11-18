@@ -1,7 +1,24 @@
 <!doctype html><html lang="ms"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Galaksi Tulisan Ajaib</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100dvh;font:600 17px system-ui;color:#f8f6ff;background:radial-gradient(ellipse at 10% 10%,#452278,transparent 52%),radial-gradient(ellipse at 97% 100%,#12515f,transparent 55%),#141129}main{max-width:940px;margin:auto;padding:32px 18px;text-align:center}h1{font-size:clamp(2.2rem,7vw,4.4rem);line-height:1;margin:12px 0;color:#fff}h2{margin:8px 0}p{line-height:1.5}.badge{color:#e0cafa}.rocket{font-size:76px}.panel{margin-top:24px;border:1px solid #a696cb77;background:#211939e8;border-radius:30px;padding:clamp(12px,4vw,30px);box-shadow:0 20px 60px #09051c80}.row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.boards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:570px;margin:12px auto}.board{background:#f7f2ff;border-radius:18px;color:#231945;padding:9px}canvas{width:100%;max-width:225px;display:block;margin:6px auto;touch-action:none;background:#f2d8ab;border-radius:12px;border:2px solid #cfc2e9;cursor:crosshair}button,a.action{font:inherit;border:0;border-radius:14px;padding:12px 18px;color:#23163d;background:#ddc8ff;cursor:pointer;min-height:46px;text-decoration:none}button:focus-visible,a:focus-visible{outline:3px solid #ffa75c;outline-offset:3px}button:disabled{opacity:.48;cursor:default}.cards button{padding:16px 8px}.cards span{display:block;font-size:32px}.primary{background:#ffe18f!important}.sub{font-size:14px}.board [role=status]{min-height:2.9em;margin:6px 0 0}.example{font-size:36px;line-height:1.1}.stars{letter-spacing:.4em;color:#ffe18f}.fly{animation:fly 3s ease-out both}@keyframes fly{0%{transform:translateY(50px)}60%{transform:translateY(-70px)}100%{transform:translateY(0)}}@media(max-width:520px){.cards{grid-template-columns:1fr}.cards span{display:inline}.boards{gap:6px}.board button{padding:6px 10px}main{padding-top:16px}}@media(prefers-reduced-motion:reduce){.fly{animation:none}}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;font:600 17px system-ui;color:#f8f6ff;background:radial-gradient(ellipse at 10% 10%,#452278,transparent 52%),radial-gradient(ellipse at 97% 100%,#12515f,transparent 55%),#141129}main{max-width:940px;margin:auto;padding:32px 18px;text-align:center}h1{font-size:clamp(2.2rem,7vw,4.4rem);line-height:1;margin:12px 0;color:#fff}h2{margin:8px 0}p{line-height:1.5}.badge{color:#e0cafa}.rocket{font-size:76px}.panel{margin-top:24px;border:1px solid #a696cb77;background:#211939e8;border-radius:30px;padding:clamp(12px,4vw,30px);box-shadow:0 20px 60px #09051c80}.row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.boards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:570px;margin:12px auto}.board{background:#f7f2ff;border-radius:18px;color:#231945;padding:9px}canvas{width:100%;max-width:225px;display:block;margin:6px auto;touch-action:none;background:#c9b9e9;border-radius:12px;border:2px solid #cfc2e9;cursor:crosshair}button,a.action{font:inherit;border:0;border-radius:14px;padding:12px 18px;color:#23163d;background:#ddc8ff;cursor:pointer;min-height:46px;text-decoration:none}button:focus-visible,a:focus-visible{outline:3px solid #ffa75c;outline-offset:3px}button:disabled{opacity:.48;cursor:default}.cards button{padding:16px 8px}.cards span{display:block;font-size:32px}.primary{background:#ffe18f!important}.sub{font-size:14px}.board [role=status]{min-height:2.9em;margin:6px 0 0}.example{font-size:36px;line-height:1.1}.stars{letter-spacing:.4em;color:#ffe18f}@media(max-width:520px){.cards{grid-template-columns:1fr}.cards span{display:inline}.boards{gap:6px}.board button{padding:6px 10px}main{padding-top:16px}}
+
+body{background:
+ radial-gradient(circle at 21px 32px,#f7e8ffb0 1px,transparent 2px) 0 0/133px 109px,
+ radial-gradient(circle at 12px 53px,#bde4ff80 1px,transparent 1.8px) 19px 0/97px 121px,
+ radial-gradient(circle at 50px 27px,#e1c4ff66 .65px,transparent 1.3px) 0 0/59px 73px,
+ radial-gradient(ellipse at 18% 20%,#713c89 0%,transparent 52%),
+ radial-gradient(ellipse at 82% 72%,#15485f 0%,transparent 50%),
+ #120d2a}
+.launch{height:185px;max-width:560px;margin:auto;position:relative;isolation:isolate;overflow:hidden;border-radius:24px;background:radial-gradient(ellipse at 50% 90%,#b975dc44,transparent 70%)}
+.launch .rocket{position:absolute;z-index:1;left:50%;top:58px;margin-left:-44px;line-height:1.2;filter:drop-shadow(0 0 14px #ca9aff77);animation:lift 3.2s ease-in-out both}
+.launch .rocket:after{content:"";position:absolute;width:12px;height:45px;left:21px;bottom:-23px;border-radius:50%;background:linear-gradient(#fff4bc,#f6a769,transparent);transform:rotate(42deg);filter:blur(2px);animation:trail 3.2s ease-in-out both}
+.burst{position:absolute;width:0;height:0;left:var(--x);top:var(--y)}
+.spark{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--color);box-shadow:0 0 9px var(--color);opacity:0;animation:burst 2s var(--delay) ease-out both}
+@keyframes lift{0%{transform:translate(-42px,69px) rotate(-12deg)}100%{transform:translate(28px,-45px) rotate(0deg)}}
+@keyframes trail{0%,100%{opacity:.24}35%,65%{opacity:.85}}
+@keyframes burst{0%{opacity:0;transform:rotate(var(--angle)) translateX(0)}25%{opacity:.85}100%{opacity:0;transform:rotate(var(--angle)) translateX(var(--radius))}}
+@media(prefers-reduced-motion:reduce){.launch .rocket,.launch .rocket:after,.spark{animation:none}.spark{opacity:.55;transform:rotate(var(--angle)) translateX(var(--radius))}}
 </style>
 <main id="app"></main>
 <script>
@@ -25,7 +42,7 @@ const sand=document.createElement('canvas');
 sand.width=sand.height=240;
 const texture=sand.getContext('2d');
 const tint=texture.createLinearGradient(0,0,240,240);
-tint.addColorStop(0,'#fae6c4');tint.addColorStop(1,'#ebc891');
+tint.addColorStop(0,'#eee2fa');tint.addColorStop(1,'#b8acd9');
 texture.fillStyle=tint;texture.fillRect(0,0,240,240);
 let grain=31;
 function grainPosition(){
@@ -33,11 +50,11 @@ function grainPosition(){
  return grain/4294967296*240;
 }
 for(let dot=0;dot<2700;dot++){
- texture.fillStyle=dot%2?'#7d471320':'#ffffff60';
+ texture.fillStyle=dot%2?'#46387926':'#ffffff85';
  texture.fillRect(grainPosition(),grainPosition(),dot%3===0?2:1,1);
 }
 [44,128,208].forEach((y,i)=>{
- texture.strokeStyle='#936b46';
+ texture.strokeStyle='#6f5b94';
  texture.lineWidth=i===1?1.4:2;
  texture.setLineDash(i===1?[6,6]:[]);
  texture.beginPath();texture.moveTo(24,y);texture.lineTo(216,y);texture.stroke();
@@ -109,15 +126,15 @@ function accepts(strokes,paths,aligned){
  const compared=aligned?ink:ink.map(([x,y])=>[
   refLeft+(x-left)*refWidth/width,refTop+(y-top)*refHeight/height
  ]);
- const radius=aligned?9:8;
- const covered=paths.every(path=>path.filter(point=>near(point,compared,radius)).length/path.length>=.80);
- return covered&&compared.filter(point=>near(point,target,radius)).length/compared.length>=.88;
+ const radius=aligned?12:10;
+ const covered=paths.every(path=>path.filter(point=>near(point,compared,radius)).length/path.length>=.74);
+ return covered&&compared.filter(point=>near(point,target,radius)).length/compared.length>=.83;
 }
 function acceptsBar(points){
  const ink=points.flat();
  if(ink.length<6)return false;
  const [left,top,right,bottom]=bounds(ink);
- return left<=51&&right>=69&&left>=33&&right<=87&&top>=66&&bottom<=82;
+ return left<=54&&right>=66&&left>=28&&right<=92&&top>=63&&bottom<=85;
 }
 function board(character,position){
  const wrapper=document.createElement('div');
@@ -136,7 +153,7 @@ function board(character,position){
  const strokes=[];
  let active=null,previous,curveStart,accepted=false;
  function curve(from,control,to){
-  for(const [offset,color] of [[2,'#fff0d5'],[0,'#754527']]){
+  for(const [offset,color] of [[2,'#f9eaff'],[0,'#392661']]){
    pen.beginPath();pen.moveTo(from[0],from[1]+offset);
    pen.quadraticCurveTo(control[0],control[1]+offset,to[0],to[1]+offset);
    pen.strokeStyle=color;pen.stroke();
@@ -195,6 +212,15 @@ function board(character,position){
  };
  paint();return pad;
 }
+function launchScene(){
+ const bursts=[
+  [23,42,'#ffd886',.8],[76,29,'#cba9ff',1.4],[76,70,'#9fe9ff',2]
+ ];
+ return '<div class="launch" aria-hidden="true"><div class="rocket">🚀</div>'+
+  bursts.map(([x,y,color,delay])=>'<div class="burst" style="--x:'+x+'%;--y:'+y+'%;--color:'+color+';--delay:'+delay+'s">'+
+   Array.from({length:12},(_,i)=>'<span class="spark" style="--angle:'+(i*30)+'deg;--radius:'+(i%2===0?51:35)+'px"></span>').join('')+
+  '</div>').join('')+'</div>';
+}
 function finish(){
  const result=document.createElement('canvas');
  result.width=700;result.height=130+records.length*220;
@@ -211,7 +237,7 @@ function finish(){
    context.drawImage(ink,x,y,200,200);
   });
  });
- app.innerHTML='<div class="rocket fly" aria-hidden="true">🚀</div><h1>Roket Berlepas!</h1><section class="panel"><h2>Tahniah, Kumpulan '+mode+'!</h2><p>Simpan hasil tulisan kamu.</p><div class="row"><a id="save" class="action primary" download="Hasil-Tulisan-'+mode+'.png">Simpan imej</a><button id="home">Main semula</button></div></section>';
+ app.innerHTML=launchScene()+'<h1>Roket Berlepas!</h1><section class="panel"><h2>Tahniah, Kumpulan '+mode+'!</h2><p>Simpan hasil tulisan kamu.</p><div class="row"><a id="save" class="action primary" download="Hasil-Tulisan-'+mode+'.png">Simpan imej</a><button id="home">Main semula</button></div></section>';
  document.getElementById('save').href=result.toDataURL('image/png');
  document.getElementById('home').onclick=home;
 }
