@@ -61,42 +61,54 @@ for(let dot=0;dot<2700;dot++){
 });
 const app=document.getElementById('app');
 let mode,index,repair,records,pads;
+const voice=new Audio();
+let retryTimer;
+const directions={Awan:'03-awan-surih',Bulan:'04-bulan-salin',Bintang:'05-bintang-tulis'};
+function stopVoice(){
+ clearTimeout(retryTimer);
+ voice.onended=null;
+ voice.pause();
+}
+function playVoice(...tracks){
+ stopVoice();
+ const playNext=()=>{
+  const track=tracks.shift();
+  if(!track)return;
+  voice.src='audio/'+track+'.mp3';
+  voice.onended=playNext;
+  voice.play().catch(()=>{});
+ };
+ playNext();
+}
+function letterVoice(index){
+ return (17+index)+'-huruf-'+letters[index].toLowerCase();
+}
 function home(){
- app.innerHTML='<div class="rocket" aria-hidden="true">🚀</div><h1>Galaksi Tulisan Ajaib</h1><p class="badge">Misi Baiki Kod Roket</p><section class="panel"><h2>Pilih kumpulan kamu</h2><p>Kod roket belum lengkap. Jom baiki huruf supaya roket boleh berlepas!</p><div class="cards">'+Object.entries(modes).map(([name,[icon,task]])=>'<button data-mode="'+name+'"><span>'+icon+'</span>'+name+'<br><small>'+task+'</small></button>').join('')+'</div></section>';
- app.querySelectorAll('[data-mode]').forEach(button=>button.onclick=()=>{mode=button.dataset.mode;index=0;records=[];repair=mode==='Awan';mission()});
+ stopVoice();
+ app.innerHTML='<div class="rocket" aria-hidden="true">🚀</div><h1>Galaksi Tulisan Ajaib</h1><p class="badge">Misi Baiki Kod Roket</p><section class="panel"><h2>Pilih kumpulan kamu</h2><p>Kod roket belum lengkap. Jom baiki huruf supaya roket boleh berlepas!</p><p><button id="intro">🔊 Dengar pengenalan</button></p><div class="cards">'+Object.entries(modes).map(([name,[icon,task]])=>'<button data-mode="'+name+'"><span>'+icon+'</span>'+name+'<br><small>'+task+'</small></button>').join('')+'</div></section>';
+ document.getElementById('intro').onclick=()=>playVoice('01-pengenalan');
+ app.querySelectorAll('[data-mode]').forEach(button=>button.onclick=()=>{mode=button.dataset.mode;index=0;records=[];repair=mode==='Awan';mission();playVoice(repair?'02-awan-baiki-palang':directions[mode])});
 }
 function mission(){
  const letter=letters[index],little=letter.toLowerCase(),[icon,word]=clues[index],total=modes[mode][2];
  const heading=repair?'Sambung palang huruf A':modes[mode][1];
  const clue=mode==='Bintang'?'<div class="rocket" aria-hidden="true">'+icon+'</div><p><strong>'+word+'</strong> <button id="hear">🔊 Dengar</button></p>':'';
  // Keep the spelling hidden when recalling the initial letter.
- app.innerHTML='<p class="badge">'+modes[mode][0]+' Kumpulan '+mode+'</p><h1 style="font-size:clamp(1.7rem,6vw,3.2rem)">'+heading+'</h1><section class="panel"><p class="stars" aria-label="'+index+' kod disiapkan">'+ '★'.repeat(index)+'☆'.repeat(total-index)+'</p>'+ (repair?'<p>Surih garisan bertitik untuk baiki huruf.</p>':mode==='Bintang'?clue.replace('<strong>'+word+'</strong> ','')+'<p>Tulis huruf pertama dalam dua kotak.</p>':'<p>Kod '+(index+1)+' daripada '+total+'</p>')+'<p class="sub">Tulis perlahan-lahan. Ambil masa kamu.</p><div class="boards"'+(repair?' style="grid-template-columns:minmax(0,420px)"':'')+'></div><div class="row"><button id="next" class="primary" disabled>'+(repair?'Mula kod roket':index===total-1?'Lancarkan roket':'Seterusnya')+'</button></div><p id="audio-status" class="sub" role="status"></p></section>';
+ app.innerHTML='<p class="badge">'+modes[mode][0]+' Kumpulan '+mode+'</p><h1 style="font-size:clamp(1.7rem,6vw,3.2rem)">'+heading+'</h1><section class="panel"><p class="stars" aria-label="'+index+' kod disiapkan">'+ '★'.repeat(index)+'☆'.repeat(total-index)+'</p>'+ (repair?'<p>Surih garisan bertitik untuk baiki huruf.</p>':mode==='Bintang'?clue.replace('<strong>'+word+'</strong> ','')+'<p>Tulis huruf pertama dalam dua kotak.</p>':'<p>Kod '+(index+1)+' daripada '+total+'</p>')+'<p class="sub">Tulis perlahan-lahan. Ambil masa kamu.</p><div class="boards"'+(repair?' style="grid-template-columns:minmax(0,420px)"':'')+'></div><div class="row"><button id="next" class="primary" disabled>'+(repair?'Mula kod roket':index===total-1?'Lancarkan roket':'Seterusnya')+'</button></div><div class="row" style="margin-top:12px"><button id="directions">🔊 Dengar arahan</button><button id="hear-letter">🔊 Dengar huruf</button></div></section>';
  const hear=document.getElementById('hear');
- if(hear)hear.onclick=async()=>{
-  const status=document.getElementById('audio-status');
-  if(word==='emak'){
-   try {
-    await new Audio('audio/10-emak.mp3').play();
-    return;
-   } catch {
-    if(!hear.isConnected)return;
-   }
-  }
-  if(!('speechSynthesis' in window)){status.textContent='Audio tidak tersedia pada peranti ini.';return}
-  const speech=new SpeechSynthesisUtterance(word);
-  speech.lang='ms-MY';speech.rate=.82;
-  const voice=speechSynthesis.getVoices().find(item=>item.lang.toLowerCase().startsWith('ms'));
-  if(voice) speech.voice=voice;
-  speech.onerror=()=>{status.textContent='Audio tidak tersedia pada peranti ini.'};
-  speechSynthesis.cancel();speechSynthesis.speak(speech);
- };
+ if(hear)hear.onclick=()=>playVoice(String(index+6).padStart(2,'0')+'-'+word);
+ document.getElementById('directions').onclick=()=>playVoice(repair?'02-awan-baiki-palang':directions[mode]);
+ const hearLetter=document.getElementById('hear-letter');
+ hearLetter.hidden=repair||mode==='Bintang';
+ hearLetter.onclick=()=>playVoice(letterVoice(index));
  pads=(repair?['A']:[letter,little]).map((character,position)=>board(character,position));
  document.getElementById('next').onclick=()=>{
   if(!pads.every(pad=>pad.accepted))return;
-  if(repair){repair=false;mission();return}
+  stopVoice();
+  if(repair){repair=false;mission();playVoice(directions.Awan);return}
   records.push(pads.map(pad=>pad.ink));
   index++;
-  if(index===total)finish();else mission();
+  if(index===total){finish();playVoice('15-roket-berlepas','16-simpan-imej')}else mission();
  };
 }
 const templateCache=new Map();
@@ -193,9 +205,15 @@ function board(character,position){
   return [(event.clientX-rect.left-canvas.clientLeft)*240/canvas.clientWidth,(event.clientY-rect.top-canvas.clientTop)*240/canvas.clientHeight];
  }
  const pad={ink,get accepted(){return accepted}};
- const refresh=()=>document.getElementById('next').disabled=!pads.every(item=>item.accepted);
+ const refresh=()=>{
+  const complete=pads.every(item=>item.accepted);
+  document.getElementById('next').disabled=!complete;
+  if(mode==='Bintang')document.getElementById('hear-letter').hidden=!complete;
+  return complete;
+ };
  canvas.onpointerdown=event=>{
   if(active!==null||event.button!==0)return;
+  clearTimeout(retryTimer);
   active=event.pointerId;previous=curveStart=point(event);canvas.setPointerCapture(active);
   accepted=false;status.textContent='';refresh();
   strokes.push([[previous[0]/2,previous[1]/2]]);
@@ -220,11 +238,18 @@ function board(character,position){
   if(strokes[strokes.length-1].length>1){curve(curveStart,previous,previous);paint()}
   accepted=repair?acceptsBar(strokes):accepts(strokes,target,mode==='Awan');
   status.textContent=accepted?'✓ Bagus!':'Lengkapkan huruf, atau tekan Padam dan cuba lagi.';
-  refresh();
+  const complete=refresh();
+  if(event.type!=='pointerup')return;
+  if(accepted){
+   const feedback=repair||!complete?'12-huruf-diterima':index===modes[mode][2]-1?'14-sedia-lancar':'13-kod-siap';
+   playVoice(feedback);
+  }else{
+   retryTimer=setTimeout(()=>playVoice('11-cuba-lagi'),2500);
+  }
  };
  wrapper.querySelector('button').onclick=()=>{
   pen.clearRect(0,0,240,240);strokes.length=0;active=null;accepted=false;
-  status.textContent='';paint();refresh();
+  stopVoice();status.textContent='';paint();refresh();
  };
  paint();return pad;
 }
@@ -253,8 +278,9 @@ function finish(){
    context.drawImage(ink,x,y,200,200);
   });
  });
- app.innerHTML=launchScene()+'<h1>Roket Berlepas!</h1><section class="panel"><h2>Tahniah, Kumpulan '+mode+'!</h2><p>Simpan hasil tulisan kamu.</p><div class="row"><a id="save" class="action primary" download="Hasil-Tulisan-'+mode+'.png">Simpan imej</a><button id="home">Main semula</button></div></section>';
+ app.innerHTML=launchScene()+'<h1>Roket Berlepas!</h1><section class="panel"><h2>Tahniah, Kumpulan '+mode+'!</h2><p>Simpan hasil tulisan kamu.</p><p><button id="closing">🔊 Dengar ucapan</button></p><div class="row"><a id="save" class="action primary" download="Hasil-Tulisan-'+mode+'.png">Simpan imej</a><button id="home">Main semula</button></div></section>';
  document.getElementById('save').href=result.toDataURL('image/png');
+ document.getElementById('closing').onclick=()=>playVoice('15-roket-berlepas','16-simpan-imej');
  document.getElementById('home').onclick=home;
 }
 home();
