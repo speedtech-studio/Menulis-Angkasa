@@ -158,11 +158,20 @@ function accepts(strokes,paths,aligned){
  });
  return covered&&compared.filter(point=>near(point,target,radius)).length/compared.length>=accuracy;
 }
-function acceptsBar(points){
- const ink=points.flat();
- if(ink.length<6)return false;
- const [left,top,right,bottom]=bounds(ink);
- return left<=56&&right>=64&&right-left>=14&&left>=24&&right<=96&&top>=59&&bottom<=89;
+function acceptsBar(strokes){
+ // Only horizontal progress near the missing bar counts. The legs may be traced too.
+ const columns=new Set();
+ for(const stroke of strokes){
+  for(let i=1;i<stroke.length;i++){
+   const [x,y]=stroke[i-1], [endX,endY]=stroke[i];
+   if(Math.abs(endY-y)>1.5*Math.abs(endX-x))continue;
+   if(Math.min(y,endY)<59||Math.max(y,endY)>89)continue;
+   const left=Math.max(43,Math.floor(Math.min(x,endX)));
+   const right=Math.min(77,Math.ceil(Math.max(x,endX)));
+   for(let column=left;column<=right;column++)columns.add(column);
+  }
+ }
+ return columns.size>=15&&[...columns].some(x=>x<=56)&&[...columns].some(x=>x>=64);
 }
 function board(character,position){
  const wrapper=document.createElement('div');
