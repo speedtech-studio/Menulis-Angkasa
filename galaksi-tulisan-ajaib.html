@@ -24,7 +24,7 @@ body{background:
 <script>
 'use strict';
 const letters=['A','B','C','D','E'];
-const clues=[['🐔','ayam'],['⚽','bola'],['☕','cawan'],['🎲','dadu'],['🍎','epal']];
+const clues=[['🐔','ayam'],['⚽','bola'],['☕','cawan'],['🎲','dadu'],['👩‍👧','emak']];
 const modes={Awan:['☁️','Surih dengan bimbingan',2],Bulan:['🌙','Salin ikut contoh',3],Bintang:['⭐','Tulis huruf awal',5]};
 const guides={
  A:'M32 103 L60 22 L88 103 M43 74 H77',
@@ -72,8 +72,16 @@ function mission(){
  // Keep the spelling hidden when recalling the initial letter.
  app.innerHTML='<p class="badge">'+modes[mode][0]+' Kumpulan '+mode+'</p><h1 style="font-size:clamp(1.7rem,6vw,3.2rem)">'+heading+'</h1><section class="panel"><p class="stars" aria-label="'+index+' kod disiapkan">'+ '★'.repeat(index)+'☆'.repeat(total-index)+'</p>'+ (repair?'<p>Surih garisan bertitik untuk baiki huruf.</p>':mode==='Bintang'?clue.replace('<strong>'+word+'</strong> ','')+'<p>Tulis huruf pertama dalam dua kotak.</p>':'<p>Kod '+(index+1)+' daripada '+total+'</p>')+'<p class="sub">Tulis perlahan-lahan. Ambil masa kamu.</p><div class="boards"'+(repair?' style="grid-template-columns:minmax(0,420px)"':'')+'></div><div class="row"><button id="next" class="primary" disabled>'+(repair?'Mula kod roket':index===total-1?'Lancarkan roket':'Seterusnya')+'</button></div><p id="audio-status" class="sub" role="status"></p></section>';
  const hear=document.getElementById('hear');
- if(hear)hear.onclick=()=>{
+ if(hear)hear.onclick=async()=>{
   const status=document.getElementById('audio-status');
+  if(word==='emak'){
+   try {
+    await new Audio('audio/10-emak.mp3').play();
+    return;
+   } catch {
+    if(!hear.isConnected)return;
+   }
+  }
   if(!('speechSynthesis' in window)){status.textContent='Audio tidak tersedia pada peranti ini.';return}
   const speech=new SpeechSynthesisUtterance(word);
   speech.lang='ms-MY';speech.rate=.82;
